@@ -1,17 +1,23 @@
 import streamlit as st
 import speech_recognition as sr
+import tempfile
 
-st.title("Voice to Text App")
+st.title("Speech to Text App")
 
-r = sr.Recognizer()
+uploaded_file = st.file_uploader("Upload audio file", type=["wav"])
 
-if st.button("Start Recording"):
-    with sr.Microphone() as source:
-        st.write("Speak now...")
-        audio = r.listen(source)
+if uploaded_file is not None:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        tmp.write(uploaded_file.read())
+        temp_audio = tmp.name
 
-        try:
-            text = r.recognize_google(audio)
-            st.success("You said: " + text)
-        except:
-            st.error("Sorry, could not understand.")
+    r = sr.Recognizer()
+
+    with sr.AudioFile(temp_audio) as source:
+        audio = r.record(source)
+
+    try:
+        text = r.recognize_google(audio)
+        st.success("Text: " + text)
+    except:
+        st.error("Could not recognize audio")
